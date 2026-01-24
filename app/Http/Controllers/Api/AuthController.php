@@ -15,6 +15,9 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        // Force JSON response
+        $request->headers->set('Accept', 'application/json');
+        
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
@@ -47,7 +50,9 @@ class AuthController extends Controller
                 'permissions' => $user->getAllPermissions()->pluck('name'),
             ],
             'token' => $token,
-        ], 200);
+        ], 200)
+        ->header('Content-Type', 'application/json')
+        ->header('X-Content-Type-Options', 'nosniff');
     }
 
     /**
