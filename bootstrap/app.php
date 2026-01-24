@@ -16,8 +16,18 @@ return Application::configure(basePath: dirname(__DIR__))
         // Don't use statefulApi for mobile apps - use pure token authentication
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Handle authentication exceptions for API routes
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
             if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Unauthenticated.'
+                ], 401);
+            }
+        });
+        
+        // Handle route not found exceptions (when Laravel tries to redirect to 'login' route)
+        $exceptions->render(function (\Symfony\Component\Routing\Exception\RouteNotFoundException $e, $request) {
+            if ($request->is('api/*') && str_contains($e->getMessage(), 'login')) {
                 return response()->json([
                     'message' => 'Unauthenticated.'
                 ], 401);
