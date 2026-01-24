@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\MedicineController;
+use App\Http\Controllers\Api\InventoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,12 +30,31 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    
+    // Medicine Management
+    Route::prefix('medicines')->group(function () {
+        Route::get('/', [MedicineController::class, 'index']);
+        Route::post('/', [MedicineController::class, 'store']);
+        Route::get('/search/barcode', [MedicineController::class, 'searchByBarcode']);
+        Route::get('/{id}', [MedicineController::class, 'show']);
+        Route::put('/{id}', [MedicineController::class, 'update']);
+        Route::delete('/{id}', [MedicineController::class, 'destroy']);
+        Route::get('/{id}/batches', [MedicineController::class, 'batches']);
+    });
+    
+    // Inventory Management
+    Route::prefix('inventory')->group(function () {
+        Route::get('/movements', [InventoryController::class, 'movements']);
+        Route::post('/adjust', [InventoryController::class, 'adjust']);
+        Route::get('/low-stock', [InventoryController::class, 'lowStock']);
+        Route::get('/expired', [InventoryController::class, 'expired']);
+        Route::get('/expiring-soon', [InventoryController::class, 'expiringSoon']);
+        Route::get('/valuation', [InventoryController::class, 'valuation']);
+    });
 });
 
 // TODO: Add other routes as controllers are created
 /*
-    // Medicine Management - requires MedicineController
-    // Inventory Management - requires InventoryController
     // POS & Sales - requires SalesController
     // Reports - requires ReportController
     // Suppliers - requires SupplierController
