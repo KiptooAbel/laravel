@@ -15,17 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed roles and permissions first
+        // Seed roles, permissions, and test users
         $this->call(RolesAndPermissionsSeeder::class);
-
-        // Create default owner user
-        $owner = User::factory()->create([
-            'name' => 'Pharmacy Owner',
-            'email' => 'owner@chemistpos.com',
-            'password' => bcrypt('password'),
-        ]);
-        $owner->assignRole('owner');
-
-        $this->command->info('Default owner created: owner@chemistpos.com / password');
     }
 }

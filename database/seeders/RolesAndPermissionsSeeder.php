@@ -92,5 +92,32 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         $this->command->info('Roles and permissions created successfully!');
+        
+        // Create test users for each role
+        $ownerUser = \App\Models\User::create([
+            'name' => 'Pharmacy Owner',
+            'email' => 'owner@chemistpos.com',
+            'password' => bcrypt('password'),
+        ]);
+        $ownerUser->assignRole('owner');
+        
+        $pharmacistUser = \App\Models\User::create([
+            'name' => 'John Pharmacist',
+            'email' => 'pharmacist@chemistpos.com',
+            'password' => bcrypt('password'),
+        ]);
+        $pharmacistUser->assignRole('pharmacist');
+        
+        $cashierUser = \App\Models\User::create([
+            'name' => 'Jane Cashier',
+            'email' => 'cashier@chemistpos.com',
+            'password' => bcrypt('password'),
+        ]);
+        $cashierUser->assignRole('cashier');
+        
+        $this->command->info('Test users created:');
+        $this->command->info('- owner@chemistpos.com / password (Owner)');
+        $this->command->info('- pharmacist@chemistpos.com / password (Pharmacist)');
+        $this->command->info('- cashier@chemistpos.com / password (Cashier)');
     }
 }
