@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\MedicineController;
 use App\Http\Controllers\Api\InventoryController;
 
@@ -43,6 +44,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/{id}/toggle-status', [UserController::class, 'toggleStatus']);
         Route::post('/{id}/assign-role', [UserController::class, 'assignRole']);
         Route::post('/{id}/assign-permissions', [UserController::class, 'assignPermissions']);
+    });
+    
+    // Role Management (Owner only)
+    Route::prefix('roles')->middleware('permission:manage_users')->group(function () {
+        Route::get('/', [RoleController::class, 'index']);
+        Route::post('/', [RoleController::class, 'store']);
+        Route::get('/permissions', [RoleController::class, 'permissions']);
+        Route::get('/{id}', [RoleController::class, 'show']);
+        Route::put('/{id}', [RoleController::class, 'update']);
+        Route::delete('/{id}', [RoleController::class, 'destroy']);
     });
     
     // Medicine Management
