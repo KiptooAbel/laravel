@@ -14,7 +14,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = Role::with('permissions')->get();
+        $roles = Role::with('permissions')->withCount('users')->get();
 
         return response()->json([
             'success' => true,
@@ -23,7 +23,7 @@ class RoleController extends Controller
                     'id' => $role->id,
                     'name' => $role->name,
                     'permissions' => $role->permissions->pluck('name'),
-                    'users_count' => $role->users()->count(),
+                    'users_count' => $role->users_count,
                     'created_at' => $role->created_at->toIso8601String(),
                 ];
             }),
