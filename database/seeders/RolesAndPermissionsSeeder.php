@@ -16,6 +16,9 @@ class RolesAndPermissionsSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // Define the guard name
+        $guardName = 'sanctum';
+
         // Create permissions
         $permissions = [
             // Medicine & Inventory
@@ -55,18 +58,20 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(
+                ['name' => $permission, 'guard_name' => $guardName]
+            );
         }
 
         // Create roles and assign permissions
 
         // Owner - has all permissions
-        $owner = Role::create(['name' => 'owner']);
-        $owner->givePermissionTo(Permission::all());
+        $owner = Role::firstOrCreate(['name' => 'owner', 'guard_name' => $guardName]);
+        $owner->syncPermissions(Permission::where('guard_name', $guardName)->get());
 
         // Pharmacist - manages inventory and can optionally sell
-        $pharmacist = Role::create(['name' => 'pharmacist']);
-        $pharmacist->givePermissionTo([
+        $pharmacist = Role::firstOrCreate(['name' => 'pharmacist', 'guard_name' => $guardName]);
+        $pharmacist->syncPermissions([
             'view_medicines',
             'create_medicine',
             'edit_medicine',
@@ -83,8 +88,8 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Cashier - handles sales only
-        $cashier = Role::create(['name' => 'cashier']);
-        $cashier->givePermissionTo([
+        $cashier = Role::firstOrCreate(['name' => 'cashier', 'guard_name' => $guardName]);
+        $cashier->syncPermissions([
             'view_medicines',
             'sell_medicine',
             'view_sales',
