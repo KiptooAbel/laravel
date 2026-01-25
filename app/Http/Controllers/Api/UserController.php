@@ -17,8 +17,6 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('manage_users');
-
         $users = User::with('roles.permissions')
             ->when($request->status, function ($query, $status) {
                 if ($status === 'active') {
@@ -56,8 +54,6 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $this->authorize('manage_users');
-
         $user = User::with('roles.permissions')->findOrFail($id);
 
         return response()->json([
@@ -79,8 +75,6 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('manage_users');
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -122,8 +116,6 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->authorize('manage_users');
-
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
@@ -180,8 +172,6 @@ class UserController extends Controller
      */
     public function toggleStatus($id)
     {
-        $this->authorize('manage_users');
-
         $user = User::findOrFail($id);
 
         // Prevent disabling self
@@ -217,8 +207,6 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $this->authorize('manage_users');
-
         $user = User::findOrFail($id);
 
         // Prevent deleting self
@@ -246,8 +234,6 @@ class UserController extends Controller
      */
     public function assignRole(Request $request, $id)
     {
-        $this->authorize('manage_users');
-
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
@@ -287,8 +273,6 @@ class UserController extends Controller
      */
     public function assignPermissions(Request $request, $id)
     {
-        $this->authorize('manage_users');
-
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
@@ -321,8 +305,6 @@ class UserController extends Controller
      */
     public function roles()
     {
-        $this->authorize('manage_users');
-
         $roles = Role::with('permissions')->get();
 
         return response()->json([
@@ -342,8 +324,6 @@ class UserController extends Controller
      */
     public function permissions()
     {
-        $this->authorize('manage_users');
-
         $permissions = Permission::all()->groupBy(function ($permission) {
             // Group by category (first part before underscore)
             $parts = explode('_', $permission->name);
