@@ -68,43 +68,6 @@ class AuthController extends Controller
     }
 
     /**
-     * Register a new user
-     * Only accessible by users with manage_users permission (Owner)
-     */
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|string|in:owner,pharmacist,cashier',
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        // Assign role
-        $user->assignRole($request->role);
-
-        // Load roles and permissions
-        $user->load('roles.permissions');
-
-        return response()->json([
-            'message' => 'User registered successfully',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'roles' => $user->roles->pluck('name'),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-            ],
-        ], 201);
-    }
-
-    /**
      * Get authenticated user details
      */
     public function user(Request $request)
@@ -117,6 +80,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'is_active' => $user->is_active ?? true,
                 'roles' => $user->roles->pluck('name'),
                 'permissions' => $user->getAllPermissions()->pluck('name'),
             ],

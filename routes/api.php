@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\MedicineController;
 use App\Http\Controllers\Api\InventoryController;
 
@@ -23,13 +24,26 @@ Route::get('/test', function () {
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
 
 // Protected routes
 Route::middleware(['auth:sanctum'])->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    
+    // User Management (Owner only)
+    Route::prefix('users')->middleware('permission:manage_users')->group(function () {
+        Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
+        Route::get('/roles', [UserController::class, 'roles']);
+        Route::get('/permissions', [UserController::class, 'permissions']);
+        Route::get('/{id}', [UserController::class, 'show']);
+        Route::put('/{id}', [UserController::class, 'update']);
+        Route::delete('/{id}', [UserController::class, 'destroy']);
+        Route::post('/{id}/toggle-status', [UserController::class, 'toggleStatus']);
+        Route::post('/{id}/assign-role', [UserController::class, 'assignRole']);
+        Route::post('/{id}/assign-permissions', [UserController::class, 'assignPermissions']);
+    });
     
     // Medicine Management
     Route::prefix('medicines')->group(function () {
