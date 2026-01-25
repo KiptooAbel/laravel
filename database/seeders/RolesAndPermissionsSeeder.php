@@ -99,26 +99,32 @@ class RolesAndPermissionsSeeder extends Seeder
         $this->command->info('Roles and permissions created successfully!');
         
         // Create test users for each role
-        $ownerUser = \App\Models\User::create([
-            'name' => 'Pharmacy Owner',
-            'email' => 'owner@chemistpos.com',
-            'password' => bcrypt('password'),
-        ]);
-        $ownerUser->assignRole('owner');
+        $ownerUser = \App\Models\User::firstOrCreate(
+            ['email' => 'owner@chemistpos.com'],
+            [
+                'name' => 'Pharmacy Owner',
+                'password' => bcrypt('password'),
+            ]
+        );
+        $ownerUser->syncRoles([$owner]);
         
-        $pharmacistUser = \App\Models\User::create([
-            'name' => 'John Pharmacist',
-            'email' => 'pharmacist@chemistpos.com',
-            'password' => bcrypt('password'),
-        ]);
-        $pharmacistUser->assignRole('pharmacist');
+        $pharmacistUser = \App\Models\User::firstOrCreate(
+            ['email' => 'pharmacist@chemistpos.com'],
+            [
+                'name' => 'John Pharmacist',
+                'password' => bcrypt('password'),
+            ]
+        );
+        $pharmacistUser->syncRoles([$pharmacist]);
         
-        $cashierUser = \App\Models\User::create([
-            'name' => 'Jane Cashier',
-            'email' => 'cashier@chemistpos.com',
-            'password' => bcrypt('password'),
-        ]);
-        $cashierUser->assignRole('cashier');
+        $cashierUser = \App\Models\User::firstOrCreate(
+            ['email' => 'cashier@chemistpos.com'],
+            [
+                'name' => 'Jane Cashier',
+                'password' => bcrypt('password'),
+            ]
+        );
+        $cashierUser->syncRoles([$cashier]);
         
         $this->command->info('Test users created:');
         $this->command->info('- owner@chemistpos.com / password (Owner)');
