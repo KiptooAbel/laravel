@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\MedicineController;
-use App\Http\Controllers\Api\InventoryController;use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\InventoryController;
+use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\SalesController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -84,6 +86,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/{id}', [SupplierController::class, 'update']);
         Route::delete('/{id}', [SupplierController::class, 'destroy']);
         Route::post('/{id}/toggle-status', [SupplierController::class, 'toggleStatus']);
+    });
+    
+    // Sales & POS
+    Route::prefix('sales')->group(function () {
+        Route::get('/', [SalesController::class, 'index']);
+        Route::post('/', [SalesController::class, 'store']);
+        Route::get('/today-summary', [SalesController::class, 'todaySummary']);
+        Route::get('/{sale}', [SalesController::class, 'show']);
+        Route::post('/{sale}/void', [SalesController::class, 'void'])->middleware('permission:manage_inventory');
+        Route::get('/{sale}/receipt', [SalesController::class, 'receipt']);
     });
 });
 
