@@ -6,8 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\MedicineController;
-use App\Http\Controllers\Api\InventoryController;
-
+use App\Http\Controllers\Api\InventoryController;use App\Http\Controllers\Api\SupplierController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -76,13 +75,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/expiring-soon', [InventoryController::class, 'expiringSoon']);
         Route::get('/valuation', [InventoryController::class, 'valuation']);
     });
+    
+    // Supplier Management
+    Route::prefix('suppliers')->group(function () {
+        Route::get('/', [SupplierController::class, 'index']);
+        Route::post('/', [SupplierController::class, 'store']);
+        Route::get('/{id}', [SupplierController::class, 'show']);
+        Route::put('/{id}', [SupplierController::class, 'update']);
+        Route::delete('/{id}', [SupplierController::class, 'destroy']);
+        Route::post('/{id}/toggle-status', [SupplierController::class, 'toggleStatus']);
+    });
 });
 
 // TODO: Add other routes as controllers are created
 /*
     // POS & Sales - requires SalesController
     // Reports - requires ReportController
-    // Suppliers - requires SupplierController
     // Purchases - requires PurchaseController
     // Settings - requires SettingsController
     // Sync - requires SyncController
