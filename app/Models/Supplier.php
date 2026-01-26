@@ -18,6 +18,7 @@ class Supplier extends Model
         'address',
         'city',
         'country',
+        'tax_id',
         'notes',
         'is_active',
     ];
@@ -27,7 +28,15 @@ class Supplier extends Model
     ];
 
     /**
-     * Get the batches supplied by this supplier
+     * Get the medicine batches supplied by this supplier
+     */
+    public function medicineBatches()
+    {
+        return $this->hasMany(MedicineBatch::class);
+    }
+
+    /**
+     * Alias for medicineBatches
      */
     public function batches()
     {
