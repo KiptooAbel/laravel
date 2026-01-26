@@ -175,7 +175,7 @@ class InventoryController extends Controller
      */
     public function expiringSoon(Request $request): JsonResponse
     {
-        $days = $request->get('days', 30);
+        $days = (int) $request->get('days', 30);
 
         $batches = MedicineBatch::with(['medicine:id,name,generic_name', 'supplier:id,name'])
             ->where('quantity', '>', 0)
