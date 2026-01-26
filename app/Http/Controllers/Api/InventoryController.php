@@ -153,7 +153,7 @@ class InventoryController extends Controller
      */
     public function expired(): JsonResponse
     {
-        $batches = MedicineBatch::with(['medicine:id,name,generic_name', 'supplier:id,name'])
+        $batches = MedicineBatch::with(['medicine', 'supplier:id,name'])
             ->where('quantity', '>', 0)
             ->where('expiry_date', '<=', now())
             ->orderBy('expiry_date', 'desc')
@@ -177,7 +177,7 @@ class InventoryController extends Controller
     {
         $days = (int) $request->get('days', 30);
 
-        $batches = MedicineBatch::with(['medicine:id,name,generic_name', 'supplier:id,name'])
+        $batches = MedicineBatch::with(['medicine', 'supplier:id,name'])
             ->where('quantity', '>', 0)
             ->where('expiry_date', '>', now())
             ->where('expiry_date', '<=', now()->addDays($days))
