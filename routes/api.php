@@ -60,10 +60,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [MedicineController::class, 'index']);
         Route::post('/', [MedicineController::class, 'store']);
         Route::get('/search/barcode', [MedicineController::class, 'searchByBarcode']);
-        Route::get('/{id}', [MedicineController::class, 'show']);
-        Route::put('/{id}', [MedicineController::class, 'update']);
-        Route::delete('/{id}', [MedicineController::class, 'destroy']);
-        Route::get('/{id}/batches', [MedicineController::class, 'batches']);
+        Route::get('/{medicine}', [MedicineController::class, 'show']);
+        Route::put('/{medicine}', [MedicineController::class, 'update']);
+        Route::delete('/{medicine}', [MedicineController::class, 'destroy']);
+        Route::get('/{medicine}/batches', [MedicineController::class, 'batches']);
     });
     
     // Inventory Management
