@@ -153,6 +153,9 @@ class SalesService
 
             // Update batch quantity
             $batch->decrement('quantity', $quantityFromThisBatch);
+            
+            // Refresh batch to get updated quantity
+            $batch->refresh();
 
             // Record stock movement
             StockMovement::create([
@@ -160,6 +163,7 @@ class SalesService
                 'batch_id' => $batch->id,
                 'type' => 'sale',
                 'quantity' => -$quantityFromThisBatch,
+                'balance_after' => $batch->quantity,
                 'reference_type' => 'App\Models\Sale',
                 'reference_id' => $sale->id,
                 'user_id' => $sale->user_id,
@@ -268,6 +272,9 @@ class SalesService
                 
                 // Increment batch quantity
                 $batch->increment('quantity', $item->quantity);
+                
+                // Refresh batch to get updated quantity
+                $batch->refresh();
 
                 // Record stock movement
                 StockMovement::create([
@@ -275,6 +282,7 @@ class SalesService
                     'batch_id' => $batch->id,
                     'type' => 'adjustment',
                     'quantity' => $item->quantity,
+                    'balance_after' => $batch->quantity,
                     'reference_type' => 'App\Models\Sale',
                     'reference_id' => $sale->id,
                     'user_id' => $userId,
