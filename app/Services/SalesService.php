@@ -14,9 +14,9 @@ use Exception;
 class SalesService
 {
     /**
-     * Kenya VAT rate (16%)
+     * VAT rate (disabled)
      */
-    const VAT_RATE = 0.16;
+    const VAT_RATE = 0.0;
 
     /**
      * Process a new sale with FIFO batch deduction.
