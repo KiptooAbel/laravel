@@ -61,9 +61,11 @@ class SyncController extends Controller
                     'user_id' => $user->id,
                     'customer_name' => $saleData['customer_name'] ?? null,
                     'customer_phone' => $saleData['customer_phone'] ?? null,
+                    'subtotal' => $saleData['subtotal'] ?? $saleData['total_amount'],
                     'discount' => $saleData['discount'] ?? 0,
-                    'vat_amount' => $saleData['vat_amount'],
-                    'total_amount' => $saleData['total_amount'],
+                    'vat_amount' => $saleData['vat_amount'] ?? 0,
+                    'total' => $saleData['total_amount'],
+                    'payment_method' => $saleData['payment']['payment_method'],
                     'created_at' => Carbon::parse($saleData['created_at']),
                 ]);
 
