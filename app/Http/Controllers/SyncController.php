@@ -71,19 +71,28 @@ class SyncController extends Controller
 
                 // Create sale items
                 foreach ($saleData['items'] as $itemData) {
+                    // Get medicine for name and get first available batch
+                    $medicine = \App\Models\Medicine::find($itemData['medicine_id']);
+                    $batch = $medicine ? $medicine->batches()->first() : null;
+                    
                     $sale->items()->create([
                         'medicine_id' => $itemData['medicine_id'],
+                        'batch_id' => $batch ? $batch->id : 1, // Use first batch or default to 1
+                        'medicine_name' => $itemData['medicine_name'] ?? ($medicine ? $medicine->name : 'Unknown'),
+                        'batch_number' => $batch ? $batch->batch_number : 'N/A',
                         'quantity' => $itemData['quantity'],
                         'unit_price' => $itemData['unit_price'],
+                        'discount' => $itemData['discount'] ?? 0,
                         'subtotal' => $itemData['subtotal'],
+                        'vat_amount' => $itemData['vat_amount'] ?? 0,
+                        'total' => $itemData['total'] ?? $itemData['subtotal'],
                     ]);
                 }
 
                 // Create payment
                 $sale->payments()->create([
                     'payment_method' => $saleData['payment']['payment_method'],
-                    'amount_paid' => $saleData['payment']['amount_paid'],
-                    'payment_date' => Carbon::parse($saleData['created_at']),
+                    'amount' => $saleData['payment']['amount_paid'],
                 ]);
 
                 $results[] = [
