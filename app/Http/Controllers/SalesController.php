@@ -80,7 +80,12 @@ class SalesController extends Controller
     public function store(CreateSaleRequest $request): JsonResponse
     {
         try {
-            $sale = $this->salesService->processSale($request->validated());
+            // Merge user_id from authenticated user into validated data
+            $data = array_merge($request->validated(), [
+                'user_id' => $request->user()->id,
+            ]);
+            
+            $sale = $this->salesService->processSale($data);
 
             return response()->json([
                 'success' => true,
