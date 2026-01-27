@@ -153,7 +153,7 @@ class SyncController extends Controller
             $stockMovements = \App\Models\StockMovement::where('created_at', '>', $lastSync)
                 ->orderBy('created_at', 'desc')
                 ->limit(1000)
-                ->get(['id', 'medicine_id', 'batch_id', 'type', 'quantity', 'notes', 'created_by', 'created_at']);
+                ->get(['id', 'medicine_id', 'batch_id', 'type', 'quantity', 'notes', 'user_id', 'created_at']);
 
             return response()->json([
                 'medicines' => $medicines,
