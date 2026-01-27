@@ -54,8 +54,9 @@ class SyncController extends Controller
                     continue;
                 }
 
-                // Create sale
+                // Create sale with generated sale_number
                 $sale = Sale::create([
+                    'sale_number' => Sale::generateSaleNumber(),
                     'local_id' => $saleData['local_id'],
                     'user_id' => $user->id,
                     'customer_name' => $saleData['customer_name'] ?? null,
@@ -133,9 +134,21 @@ class SyncController extends Controller
                 ->where('is_active', true)
                 ->get(['id', 'name', 'email', 'is_active', 'updated_at']);
 
+            // Get suppliers updated since last sync
+            $suppliers = \App\Models\Supplier::where('updated_at', '>', $lastSync)
+                ->get(['id', 'name', 'contact_person', 'email', 'phone', 'address', 'is_active', 'updated_at']);
+
+            // Get recent stock movements (limit to last 1000)
+            $stockMovements = \App\Models\StockMovement::where('created_at', '>', $lastSync)
+                ->orderBy('created_at', 'desc')
+                ->limit(1000)
+                ->get(['id', 'medicine_id', 'batch_id', 'type', 'quantity', 'notes', 'created_by', 'created_at']);
+
             return response()->json([
                 'medicines' => $medicines,
                 'users' => $users,
+                'suppliers' => $suppliers,
+                'stock_movements' => $stockMovements,
                 'sync_timestamp' => Carbon::now()->toIso8601String(),
             ]);
         } catch (\Exception $e) {
