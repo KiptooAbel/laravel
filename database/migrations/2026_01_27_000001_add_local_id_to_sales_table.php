@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('stock_movements', function (Blueprint $table) {
-            $table->integer('balance_after')->default(0)->after('quantity');
+        Schema::table('sales', function (Blueprint $table) {
+            $table->string('local_id')->nullable()->unique()->after('id');
+            $table->index('local_id');
         });
     }
 
@@ -21,8 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('stock_movements', function (Blueprint $table) {
-            $table->dropColumn('balance_after');
+        Schema::table('sales', function (Blueprint $table) {
+            $table->dropIndex(['local_id']);
+            $table->dropColumn('local_id');
         });
     }
 };

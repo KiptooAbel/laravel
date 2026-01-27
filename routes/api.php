@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\MedicineController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\SyncController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -97,13 +98,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/{sale}/void', [SalesController::class, 'void'])->middleware('permission:manage_inventory');
         Route::get('/{sale}/receipt', [SalesController::class, 'receipt']);
     });
+    
+    // Sync endpoints for offline mode
+    Route::prefix('sync')->group(function () {
+        Route::post('/push-sales', [SyncController::class, 'pushSales']);
+        Route::get('/pull-data', [SyncController::class, 'pullData']);
+        Route::get('/status', [SyncController::class, 'status']);
+        Route::get('/logs', [SyncController::class, 'getLogs'])->middleware('permission:manage_users');
+    });
 });
 
 // TODO: Add other routes as controllers are created
 /*
-    // POS & Sales - requires SalesController
     // Reports - requires ReportController
     // Purchases - requires PurchaseController
     // Settings - requires SettingsController
-    // Sync - requires SyncController
 */
