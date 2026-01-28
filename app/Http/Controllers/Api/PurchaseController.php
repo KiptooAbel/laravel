@@ -136,15 +136,18 @@ class PurchaseController extends Controller
                     [
                         'supplier_id' => $validated['supplier_id'],
                         'expiry_date' => $itemData['expiry_date'],
+                        'received_date' => $validated['purchase_date'],
                         'initial_quantity' => $itemData['quantity'],
                         'quantity' => 0,
                         'cost_price_per_unit' => $itemData['unit_cost'],
+                        'selling_price_per_unit' => $itemData['selling_price'],
                     ]
                 );
 
                 // Update batch quantity
                 $batch->quantity += $itemData['quantity'];
                 $batch->cost_price_per_unit = $itemData['unit_cost'];
+                $batch->selling_price_per_unit = $itemData['selling_price'];
                 $batch->save();
 
                 // Update medicine selling price if needed
