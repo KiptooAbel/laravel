@@ -152,7 +152,7 @@ class PurchaseController extends Controller
 
                 // Update medicine selling price if needed
                 $medicine = Medicine::find($itemData['medicine_id']);
-                $medicine->selling_price = $itemData['selling_price'];
+                $medicine->unit_price = $itemData['selling_price'];
                 $medicine->save();
             }
 
