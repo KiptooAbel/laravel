@@ -136,6 +136,7 @@ class PurchaseController extends Controller
                     [
                         'supplier_id' => $validated['supplier_id'],
                         'expiry_date' => $itemData['expiry_date'],
+                        'initial_quantity' => $itemData['quantity'],
                         'quantity' => 0,
                         'cost_price' => $itemData['unit_cost'],
                     ]
