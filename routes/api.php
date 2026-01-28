@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SyncController;
+use App\Http\Controllers\ReportController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -105,6 +106,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/pull-data', [SyncController::class, 'pullData']);
         Route::get('/status', [SyncController::class, 'status']);
         Route::get('/logs', [SyncController::class, 'getLogs'])->middleware('permission:manage_users');
+    });
+    
+    // Reports
+    Route::prefix('reports')->group(function () {
+        Route::get('/daily-sales', [ReportController::class, 'dailySales']);
+        Route::get('/profit', [ReportController::class, 'profit']);
+        Route::get('/stock-valuation', [ReportController::class, 'stockValuation']);
+        Route::get('/expired-items', [ReportController::class, 'expiredItems']);
+        Route::get('/expiring-soon', [ReportController::class, 'expiringSoon']);
+        Route::get('/top-selling', [ReportController::class, 'topSelling']);
+        Route::get('/dashboard', [ReportController::class, 'dashboard']);
     });
 });
 
