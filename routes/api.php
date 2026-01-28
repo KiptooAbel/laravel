@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\MedicineController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\PurchaseController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\ReportController;
@@ -88,6 +89,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/{id}', [SupplierController::class, 'update']);
         Route::delete('/{id}', [SupplierController::class, 'destroy']);
         Route::post('/{id}/toggle-status', [SupplierController::class, 'toggleStatus']);
+    });
+    
+    // Purchase Management
+    Route::prefix('purchases')->group(function () {
+        Route::get('/', [PurchaseController::class, 'index']);
+        Route::post('/', [PurchaseController::class, 'store']);
+        Route::get('/statistics', [PurchaseController::class, 'statistics']);
+        Route::get('/{id}', [PurchaseController::class, 'show']);
+        Route::post('/{id}/payment', [PurchaseController::class, 'recordPayment']);
     });
     
     // Sales & POS
