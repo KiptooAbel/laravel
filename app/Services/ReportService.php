@@ -99,7 +99,7 @@ class ReportService
                 'profit' => $group->sum('profit'),
                 'profit_margin' => $group->sum('revenue') > 0 ? ($group->sum('profit') / $group->sum('revenue')) * 100 : 0,
             ];
-        })->values()->sortByDesc('profit')->take(20);
+        })->values()->sortByDesc('profit')->take(20)->values()->toArray();
 
         $totalProfit = $totalRevenue - $totalCost;
         $profitMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
@@ -229,7 +229,7 @@ class ReportService
      */
     public function getExpiringSoonReport($days = 90)
     {
-        $expiryThreshold = now()->addDays($days);
+        $expiryThreshold = now()->addDays((int) $days);
 
         $expiringBatches = MedicineBatch::where('expiry_date', '>', now())
             ->where('expiry_date', '<=', $expiryThreshold)
