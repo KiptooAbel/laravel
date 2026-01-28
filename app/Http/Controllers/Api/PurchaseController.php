@@ -138,13 +138,13 @@ class PurchaseController extends Controller
                         'expiry_date' => $itemData['expiry_date'],
                         'initial_quantity' => $itemData['quantity'],
                         'quantity' => 0,
-                        'cost_price' => $itemData['unit_cost'],
+                        'cost_price_per_unit' => $itemData['unit_cost'],
                     ]
                 );
 
                 // Update batch quantity
                 $batch->quantity += $itemData['quantity'];
-                $batch->cost_price = $itemData['unit_cost'];
+                $batch->cost_price_per_unit = $itemData['unit_cost'];
                 $batch->save();
 
                 // Update medicine selling price if needed
