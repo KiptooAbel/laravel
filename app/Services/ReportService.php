@@ -18,7 +18,7 @@ class ReportService
     {
         $sales = Sale::whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'completed')
-            ->with(['items.medicine', 'payment', 'user'])
+            ->with(['items.medicine', 'user'])
             ->get();
 
         $grouped = $sales->groupBy(function ($sale) {
@@ -30,10 +30,10 @@ class ReportService
             $report[] = [
                 'date' => $date,
                 'total_sales' => $daySales->count(),
-                'total_revenue' => $daySales->sum('total_amount'),
-                'total_discount' => $daySales->sum('discount_amount'),
-                'total_tax' => $daySales->sum('tax_amount'),
-                'net_amount' => $daySales->sum('net_amount'),
+                'total_revenue' => $daySales->sum('subtotal'),
+                'total_discount' => $daySales->sum('discount'),
+                'total_tax' => $daySales->sum('vat_amount'),
+                'net_amount' => $daySales->sum('total'),
                 'payment_methods' => $this->groupByPaymentMethod($daySales),
             ];
         }
@@ -45,11 +45,11 @@ class ReportService
             ],
             'summary' => [
                 'total_sales' => $sales->count(),
-                'total_revenue' => $sales->sum('total_amount'),
-                'total_discount' => $sales->sum('discount_amount'),
-                'total_tax' => $sales->sum('tax_amount'),
-                'net_amount' => $sales->sum('net_amount'),
-                'average_sale' => $sales->count() > 0 ? $sales->sum('net_amount') / $sales->count() : 0,
+                'total_revenue' => $sales->sum('subtotal'),
+                'total_discount' => $sales->sum('discount'),
+                'total_tax' => $sales->sum('vat_amount'),
+                'net_amount' => $sales->sum('total'),
+                'average_sale' => $sales->count() > 0 ? $sales->sum('total') / $sales->count() : 0,
             ],
             'daily_breakdown' => $report,
         ];
@@ -303,14 +303,14 @@ class ReportService
     private function groupByPaymentMethod($sales)
     {
         $grouped = $sales->groupBy(function ($sale) {
-            return $sale->payment->payment_method ?? 'unknown';
+            return $sale->payment_method ?? 'unknown';
         });
 
         $result = [];
         foreach ($grouped as $method => $methodSales) {
             $result[$method] = [
                 'count' => $methodSales->count(),
-                'amount' => $methodSales->sum('net_amount'),
+                'amount' => $methodSales->sum('total'),
             ];
         }
 
