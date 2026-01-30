@@ -49,7 +49,10 @@ class MedicineController extends Controller
 
         $medicines = $query->paginate($request->get('per_page', 15));
 
-        return response()->json($medicines);
+        return response()->json([
+            'success' => true,
+            'data' => $medicines,
+        ]);
     }
 
     /**

@@ -26,16 +26,22 @@ class SupplierController extends Controller
             });
         }
 
-        // Filter by status
+        // Filter by status (support both 'is_active' and 'status' parameters)
         if ($request->has('is_active')) {
             $query->where('is_active', $request->is_active);
+        } elseif ($request->has('status')) {
+            $isActive = $request->status === 'active' ? 1 : 0;
+            $query->where('is_active', $isActive);
         }
 
         // Pagination
         $perPage = $request->get('per_page', 15);
         $suppliers = $query->orderBy('name')->paginate($perPage);
 
-        return response()->json($suppliers);
+        return response()->json([
+            'success' => true,
+            'data' => $suppliers,
+        ]);
     }
 
     /**

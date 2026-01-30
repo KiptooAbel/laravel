@@ -144,8 +144,72 @@ class InventoryController extends Controller
             });
 
         return response()->json([
-            'medicines' => $medicines
+            'success' => true,
+            'data' => [
+                'medicines' => $medicines,
+                'total' => $medicines->count(),
+            ],
         ]);
+    }
+
+    /**
+     * Get inventory alerts (low stock, expired, expiring soon)
+     */
+    public function alerts(Request $request): JsonResponse
+    {
+        $alertType = $request->get('alert_type');
+        $perPage = $request->get('per_page', 15);
+        
+        // Default to low_stock if no type specified
+        if ($alertType === 'low_stock' || !$alertType) {
+            $query = Medicine::whereRaw('(SELECT SUM(quantity) FROM medicine_batches 
+                WHERE medicine_batches.medicine_id = medicines.id 
+                AND medicine_batches.quantity > 0 
+                AND (medicine_batches.expiry_date IS NULL OR medicine_batches.expiry_date > NOW())) <= medicines.reorder_level')
+                ->with(['activeBatches']);
+            
+            $result = $query->paginate($perPage);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+            ]);
+        }
+        
+        // For expired items
+        if ($alertType === 'expired') {
+            $batches = MedicineBatch::with(['medicine', 'supplier:id,name'])
+                ->where('quantity', '>', 0)
+                ->where('expiry_date', '<=', now())
+                ->orderBy('expiry_date', 'desc')
+                ->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $batches,
+            ]);
+        }
+        
+        // For expiring soon
+        if ($alertType === 'expiring_soon') {
+            $days = (int) $request->get('days', 30);
+            $batches = MedicineBatch::with(['medicine', 'supplier:id,name'])
+                ->where('quantity', '>', 0)
+                ->where('expiry_date', '>', now())
+                ->where('expiry_date', '<=', now()->addDays($days))
+                ->orderBy('expiry_date', 'asc')
+                ->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $batches,
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid alert type',
+        ], 400);
     }
 
     /**

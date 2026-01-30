@@ -18,8 +18,20 @@ class ReportService
     {
         $sales = Sale::whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'completed')
-            ->with(['items.medicine', 'user'])
+            ->with(['items.medicine', 'items.batch', 'user'])
             ->get();
+
+        // Calculate profit
+        $totalCost = 0;
+        foreach ($sales as $sale) {
+            foreach ($sale->items as $item) {
+                $cost = $item->batch ? ($item->batch->cost_price * $item->quantity) : 0;
+                $totalCost += $cost;
+            }
+        }
+
+        $totalRevenue = $sales->sum('subtotal');
+        $totalProfit = $totalRevenue - $totalCost;
 
         $grouped = $sales->groupBy(function ($sale) {
             return Carbon::parse($sale->created_at)->format('Y-m-d');
@@ -45,11 +57,13 @@ class ReportService
             ],
             'summary' => [
                 'total_sales' => $sales->count(),
-                'total_revenue' => $sales->sum('subtotal'),
-                'total_discount' => $sales->sum('discount'),
-                'total_tax' => $sales->sum('vat_amount'),
-                'net_amount' => $sales->sum('total'),
-                'average_sale' => $sales->count() > 0 ? $sales->sum('total') / $sales->count() : 0,
+                'total_revenue' => round($totalRevenue, 2),
+                'total_discount' => round($sales->sum('discount'), 2),
+                'total_tax' => round($sales->sum('vat_amount'), 2),
+                'net_amount' => round($sales->sum('total'), 2),
+                'total_profit' => round($totalProfit, 2),
+                'total_cost' => round($totalCost, 2),
+                'average_sale' => $sales->count() > 0 ? round($sales->sum('total') / $sales->count(), 2) : 0,
             ],
             'daily_breakdown' => $report,
         ];
@@ -134,6 +148,7 @@ class ReportService
 
         $totalValuationCost = 0;
         $totalValuationSelling = 0;
+        $lowStockCount = 0;
         $items = [];
 
         foreach ($medicines as $medicine) {
@@ -156,6 +171,11 @@ class ReportService
                 $totalValuationCost += $valuationCost;
                 $totalValuationSelling += $valuationSelling;
 
+                // Check if low stock
+                if ($stockQuantity <= $medicine->reorder_level) {
+                    $lowStockCount++;
+                }
+
                 $items[] = [
                     'medicine_id' => $medicine->id,
                     'medicine_name' => $medicine->name,
@@ -175,9 +195,11 @@ class ReportService
             'summary' => [
                 'total_medicines' => count($items),
                 'total_stock_quantity' => collect($items)->sum('stock_quantity'),
+                'total_value' => round($totalValuationCost, 2),
                 'total_valuation_at_cost' => round($totalValuationCost, 2),
                 'total_valuation_at_selling' => round($totalValuationSelling, 2),
                 'potential_profit' => round($totalValuationSelling - $totalValuationCost, 2),
+                'low_stock_count' => $lowStockCount,
             ],
             'items' => collect($items)->sortByDesc('valuation_at_cost')->values(),
         ];
@@ -216,6 +238,7 @@ class ReportService
         return [
             'generated_at' => now()->toDateTimeString(),
             'summary' => [
+                'total_expired' => count($items),
                 'total_expired_batches' => count($items),
                 'total_expired_quantity' => collect($items)->sum('quantity'),
                 'total_loss_amount' => round($totalLoss, 2),
@@ -262,6 +285,7 @@ class ReportService
             'generated_at' => now()->toDateTimeString(),
             'threshold_days' => $days,
             'summary' => [
+                'total_expiring' => count($items),
                 'total_expiring_batches' => count($items),
                 'total_expiring_quantity' => collect($items)->sum('quantity'),
                 'potential_loss_amount' => round(collect($items)->sum('potential_loss'), 2),

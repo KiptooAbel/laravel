@@ -75,6 +75,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('inventory')->group(function () {
         Route::get('/movements', [InventoryController::class, 'movements']);
         Route::post('/adjust', [InventoryController::class, 'adjust']);
+        Route::get('/alerts', [InventoryController::class, 'alerts']);
         Route::get('/low-stock', [InventoryController::class, 'lowStock']);
         Route::get('/expired', [InventoryController::class, 'expired']);
         Route::get('/expiring-soon', [InventoryController::class, 'expiringSoon']);
