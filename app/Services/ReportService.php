@@ -25,7 +25,7 @@ class ReportService
         $totalCost = 0;
         foreach ($sales as $sale) {
             foreach ($sale->items as $item) {
-                $cost = $item->batch ? ($item->batch->cost_price * $item->quantity) : 0;
+                $cost = $item->batch ? ($item->batch->cost_price_per_unit * $item->quantity) : 0;
                 $totalCost += $cost;
             }
         }
@@ -85,7 +85,7 @@ class ReportService
 
         foreach ($saleItems as $item) {
             $revenue = $item->subtotal;
-            $cost = $item->batch ? ($item->batch->cost_price * $item->quantity) : 0;
+            $cost = $item->batch ? ($item->batch->cost_price_per_unit * $item->quantity) : 0;
             $profit = $revenue - $cost;
 
             $totalRevenue += $revenue;
@@ -160,13 +160,13 @@ class ReportService
                 $totalQuantity = 0;
                 
                 foreach ($medicine->batches as $batch) {
-                    $totalCost += $batch->cost_price * $batch->quantity;
+                    $totalCost += $batch->cost_price_per_unit * $batch->quantity;
                     $totalQuantity += $batch->quantity;
                 }
                 
                 $avgCostPrice = $totalQuantity > 0 ? $totalCost / $totalQuantity : 0;
                 $valuationCost = $totalCost;
-                $valuationSelling = $medicine->selling_price * $stockQuantity;
+                $valuationSelling = $medicine->unit_price * $stockQuantity;
 
                 $totalValuationCost += $valuationCost;
                 $totalValuationSelling += $valuationSelling;
@@ -182,7 +182,7 @@ class ReportService
                     'generic_name' => $medicine->generic_name,
                     'stock_quantity' => $stockQuantity,
                     'avg_cost_price' => round($avgCostPrice, 2),
-                    'selling_price' => $medicine->selling_price,
+                    'selling_price' => $medicine->unit_price,
                     'valuation_at_cost' => round($valuationCost, 2),
                     'valuation_at_selling' => round($valuationSelling, 2),
                     'potential_profit' => round($valuationSelling - $valuationCost, 2),
@@ -219,7 +219,7 @@ class ReportService
         $items = [];
 
         foreach ($expiredBatches as $batch) {
-            $loss = $batch->cost_price * $batch->quantity;
+            $loss = $batch->cost_price_per_unit * $batch->quantity;
             $totalLoss += $loss;
 
             $items[] = [
@@ -228,7 +228,7 @@ class ReportService
                 'medicine_name' => $batch->medicine->name ?? 'N/A',
                 'generic_name' => $batch->medicine->generic_name ?? 'N/A',
                 'quantity' => $batch->quantity,
-                'cost_price' => $batch->cost_price,
+                'cost_price' => $batch->cost_price_per_unit,
                 'expiry_date' => $batch->expiry_date,
                 'days_expired' => Carbon::parse($batch->expiry_date)->diffInDays(now()),
                 'loss_amount' => round($loss, 2),
@@ -263,7 +263,7 @@ class ReportService
         $items = [];
 
         foreach ($expiringBatches as $batch) {
-            $potentialLoss = $batch->cost_price * $batch->quantity;
+            $potentialLoss = $batch->cost_price_per_unit * $batch->quantity;
             $daysUntilExpiry = now()->diffInDays(Carbon::parse($batch->expiry_date));
 
             $items[] = [
@@ -272,8 +272,8 @@ class ReportService
                 'medicine_name' => $batch->medicine->name ?? 'N/A',
                 'generic_name' => $batch->medicine->generic_name ?? 'N/A',
                 'quantity' => $batch->quantity,
-                'cost_price' => $batch->cost_price,
-                'selling_price' => $batch->medicine->selling_price ?? 0,
+                'cost_price' => $batch->cost_price_per_unit,
+                'selling_price' => $batch->medicine->unit_price ?? 0,
                 'expiry_date' => $batch->expiry_date,
                 'days_until_expiry' => $daysUntilExpiry,
                 'potential_loss' => round($potentialLoss, 2),
