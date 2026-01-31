@@ -38,10 +38,7 @@ class SupplierController extends Controller
         $perPage = $request->get('per_page', 15);
         $suppliers = $query->orderBy('name')->paginate($perPage);
 
-        return response()->json([
-            'success' => true,
-            'data' => $suppliers,
-        ]);
+        return response()->json($suppliers);
     }
 
     /**
