@@ -163,11 +163,25 @@ class SyncController extends Controller
                 ->limit(1000)
                 ->get(['id', 'medicine_id', 'batch_id', 'type', 'quantity', 'notes', 'user_id', 'created_at']);
 
+            // Get recent purchases with items (limit to last 500 for initial sync, or updated since last sync)
+            $purchasesQuery = \App\Models\Purchase::with(['supplier:id,name', 'user:id,name', 'items.medicine:id,name']);
+            if ($request->has('last_sync')) {
+                // Regular sync - only updated purchases
+                $purchasesQuery->where('updated_at', '>', $lastSync);
+            } else {
+                // Initial sync - get recent purchases (last 3 months)
+                $purchasesQuery->where('purchase_date', '>', Carbon::now()->subMonths(3));
+            }
+            $purchases = $purchasesQuery->orderBy('purchase_date', 'desc')
+                ->limit(500)
+                ->get();
+
             return response()->json([
                 'medicines' => $medicines,
                 'users' => $users,
                 'suppliers' => $suppliers,
                 'stock_movements' => $stockMovements,
+                'purchases' => $purchases,
                 'sync_timestamp' => Carbon::now()->toIso8601String(),
             ]);
         } catch (\Exception $e) {
