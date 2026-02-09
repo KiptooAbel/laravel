@@ -51,7 +51,7 @@ class InventoryController extends Controller
             'medicine_id' => 'required|exists:medicines,id',
             'batch_id' => 'nullable|exists:medicine_batches,id',
             'quantity' => 'required|integer|not_in:0',
-            'type' => 'required|in:adjustment,damage,expiry,return',
+            'type' => 'required|in:purchase,sale,adjustment,damage,expiry,return',
             'notes' => 'nullable|string',
             'batch_data' => 'required_without:batch_id|array', // For creating new batch
             'batch_data.batch_number' => 'required_with:batch_data|string',
