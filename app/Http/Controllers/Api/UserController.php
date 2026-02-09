@@ -78,15 +78,16 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
             'role' => 'required|string|exists:roles,name',
             'is_active' => 'boolean',
         ]);
 
+        // Set default password to user's email and require password change
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make($validated['email']),
+            'password_change_required' => true,
             'is_active' => $validated['is_active'] ?? true,
         ]);
 
@@ -333,6 +334,52 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'permissions' => $permissions,
+        ]);
+    }
+
+    /**
+     * Change user's own password
+     */
+    public function changePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/',
+            ],
+        ], [
+            'new_password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#)',
+        ]);
+
+        $user = $request->user();
+
+        // Verify current password
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Current password is incorrect',
+            ], 400);
+        }
+
+        // Check if new password is same as current
+        if (Hash::check($validated['new_password'], $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'New password must be different from current password',
+            ], 400);
+        }
+
+        // Update password and clear password change required flag
+        $user->password = Hash::make($validated['new_password']);
+        $user->password_change_required = false;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully',
         ]);
     }
 }

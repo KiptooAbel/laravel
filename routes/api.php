@@ -35,6 +35,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    Route::post('/change-password', [UserController::class, 'changePassword']);
     
     // User Management (Owner only)
     Route::prefix('users')->middleware('permission:manage_users')->group(function () {
