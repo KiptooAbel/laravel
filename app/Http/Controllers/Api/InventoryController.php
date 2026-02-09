@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Medicine;
 use App\Models\MedicineBatch;
 use App\Models\StockMovement;
+use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -65,6 +67,7 @@ class InventoryController extends Controller
         DB::beginTransaction();
         try {
             $medicine = Medicine::findOrFail($validated['medicine_id']);
+            $purchase = null; // Track if we created a purchase
 
             // If adding stock and no batch_id, create new batch
             if ($validated['quantity'] > 0 && !isset($validated['batch_id'])) {
@@ -82,6 +85,38 @@ class InventoryController extends Controller
                     'notes' => $validated['notes'] ?? null,
                 ]);
                 $batchId = $batch->id;
+
+                // If type is 'purchase', create a Purchase record for Stock In screen
+                if ($validated['type'] === 'purchase') {
+                    $purchaseNumber = Purchase::generatePurchaseNumber();
+                    $itemSubtotal = $validated['quantity'] * $validated['batch_data']['cost_price_per_unit'];
+                    
+                    $purchase = Purchase::create([
+                        'purchase_number' => $purchaseNumber,
+                        'supplier_id' => $validated['batch_data']['supplier_id'] ?? null,
+                        'user_id' => auth()->id(),
+                        'purchase_date' => now()->toDateString(),
+                        'subtotal' => $itemSubtotal,
+                        'tax' => 0,
+                        'discount' => 0,
+                        'total' => $itemSubtotal,
+                        'payment_status' => 'paid', // Mark as paid since it's direct stock addition
+                        'paid_amount' => $itemSubtotal,
+                        'notes' => $validated['notes'] ?? 'Stock added via batch screen',
+                    ]);
+
+                    // Create purchase item
+                    PurchaseItem::create([
+                        'purchase_id' => $purchase->id,
+                        'medicine_id' => $medicine->id,
+                        'batch_number' => $validated['batch_data']['batch_number'],
+                        'expiry_date' => $validated['batch_data']['expiry_date'],
+                        'quantity' => $validated['quantity'],
+                        'unit_cost' => $validated['batch_data']['cost_price_per_unit'],
+                        'selling_price' => $validated['batch_data']['selling_price_per_unit'],
+                        'subtotal' => $itemSubtotal,
+                    ]);
+                }
             } else {
                 // Adjusting existing batch
                 $batch = MedicineBatch::findOrFail($validated['batch_id']);
@@ -109,11 +144,19 @@ class InventoryController extends Controller
 
             DB::commit();
 
-            return response()->json([
+            $response = [
                 'message' => 'Stock adjusted successfully',
                 'movement' => $movement->load(['medicine', 'batch', 'user']),
                 'new_stock' => $medicine->fresh()->total_stock
-            ]);
+            ];
+
+            // Include purchase info if created
+            if ($purchase) {
+                $response['purchase'] = $purchase->load(['supplier', 'user', 'items.medicine']);
+                $response['message'] = 'Stock added successfully and purchase record created';
+            }
+
+            return response()->json($response);
 
         } catch (\Exception $e) {
             DB::rollBack();
