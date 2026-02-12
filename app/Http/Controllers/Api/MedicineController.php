@@ -182,8 +182,11 @@ class MedicineController extends Controller
         ]);
 
         $medicine = Medicine::where('barcode', $request->barcode)
-            ->with(['activeBatches' => function($q) {
-                $q->limit(1); // Get oldest batch for FIFO
+            ->with(['batches' => function($q) {
+                $q->where('quantity', '>', 0)
+                  ->where('expiry_date', '>', now())
+                  ->orderBy('expiry_date', 'asc')
+                  ->limit(1); // Get oldest batch for FIFO
             }])
             ->first();
 
