@@ -70,6 +70,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/{medicine}', [MedicineController::class, 'update']);
         Route::delete('/{medicine}', [MedicineController::class, 'destroy']);
         Route::get('/{medicine}/batches', [MedicineController::class, 'batches']);
+        Route::put('/batches/{batch}', [MedicineController::class, 'updateBatch']);
+        Route::delete('/batches/{batch}', [MedicineController::class, 'destroyBatch']);
     });
     
     // Inventory Management

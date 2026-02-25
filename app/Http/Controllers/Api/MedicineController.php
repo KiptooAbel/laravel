@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Medicine;
+use App\Models\MedicineBatch;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -169,6 +170,57 @@ class MedicineController extends Controller
 
         return response()->json([
             'batches' => $batches
+        ]);
+    }
+
+    /**
+     * Update an existing batch
+     */
+    public function updateBatch(Request $request, MedicineBatch $batch): JsonResponse
+    {
+        $validated = $request->validate([
+            'batch_number'          => 'sometimes|string|max:100',
+            'quantity'              => 'sometimes|integer|min:0',
+            'cost_price_per_unit'   => 'sometimes|numeric|min:0|max:999999.99',
+            'selling_price_per_unit'=> 'sometimes|numeric|min:0|max:999999.99',
+            'manufacture_date'      => 'nullable|date',
+            'expiry_date'           => 'sometimes|date',
+            'supplier_id'           => 'nullable|exists:suppliers,id',
+            'notes'                 => 'nullable|string|max:500',
+        ]);
+
+        $batch->update($validated);
+
+        // Recalculate medicine total stock
+        $batch->medicine->updateQuietly([
+            'total_stock' => $batch->medicine->batches()
+                ->where('expiry_date', '>', now())
+                ->sum('quantity'),
+        ]);
+
+        return response()->json([
+            'message' => 'Batch updated successfully',
+            'batch'   => $batch->fresh()->load('supplier:id,name'),
+        ]);
+    }
+
+    /**
+     * Delete a batch
+     */
+    public function destroyBatch(MedicineBatch $batch): JsonResponse
+    {
+        $medicine = $batch->medicine;
+        $batch->delete();
+
+        // Recalculate medicine total stock
+        $medicine->updateQuietly([
+            'total_stock' => $medicine->batches()
+                ->where('expiry_date', '>', now())
+                ->sum('quantity'),
+        ]);
+
+        return response()->json([
+            'message' => 'Batch deleted successfully',
         ]);
     }
 
