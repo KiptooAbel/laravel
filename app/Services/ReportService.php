@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\Medicine;
 use App\Models\MedicineBatch;
 use App\Models\SaleItem;
+use App\Models\Expense;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -33,6 +34,11 @@ class ReportService
         $totalRevenue = $sales->sum('subtotal');
         $totalProfit = $totalRevenue - $totalCost;
 
+        // Get expenses for the period
+        $expenses = Expense::whereBetween('expense_date', [$startDate, $endDate])->get();
+        $totalExpenses = $expenses->sum('amount');
+        $netProfit = $totalProfit - $totalExpenses;
+
         $grouped = $sales->groupBy(function ($sale) {
             return Carbon::parse($sale->created_at)->format('Y-m-d');
         });
@@ -56,8 +62,10 @@ class ReportService
                 'end' => $endDate,
             ],
             'summary' => [
-                'total_sales' => $sales->count(),
-                'total_revenue' => round($totalRevenue, 2),
+                'total_cost' => round($totalCost, 2),
+                'gross_profit' => round($totalProfit, 2),
+                'total_expenses' => round($totalExpenses, 2),
+                'net_profit' => round($netProfiRevenue, 2),
                 'total_discount' => round($sales->sum('discount'), 2),
                 'total_tax' => round($sales->sum('vat_amount'), 2),
                 'net_amount' => round($sales->sum('total'), 2),
@@ -118,6 +126,22 @@ class ReportService
         $totalProfit = $totalRevenue - $totalCost;
         $profitMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
 
+        // Get expenses for the period
+        $expenses = Expense::whereBetween('expense_date', [$startDate, $endDate])->get();
+        $totalExpenses = $expenses->sum('amount');
+        
+        // Group expenses by type
+        $expensesByType = $expenses->groupBy('expense_type')->map(function ($group) {
+            return [
+                'count' => $group->count(),
+                'total' => $group->sum('amount'),
+            ];
+        });
+
+        // Calculate net profit (profit minus expenses)
+        $netProfit = $totalProfit - $totalExpenses;
+        $netProfitMargin = $totalRevenue > 0 ? ($netProfit / $totalRevenue) * 100 : 0;
+
         return [
             'period' => [
                 'start' => $startDate,
@@ -126,9 +150,13 @@ class ReportService
             'summary' => [
                 'total_revenue' => $totalRevenue,
                 'total_cost' => $totalCost,
-                'total_profit' => $totalProfit,
-                'profit_margin' => round($profitMargin, 2),
+                'gross_profit' => $totalProfit,
+                'gross_profit_margin' => round($profitMargin, 2),
+                'total_expenses' => $totalExpenses,
+                'net_profit' => $netProfit,
+                'net_profit_margin' => round($netProfitMargin, 2),
             ],
+            'expenses_by_type' => $expensesByType,
             'top_profitable_medicines' => $groupedItems,
         ];
     }

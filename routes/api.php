@@ -104,6 +104,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/{id}/payment', [PurchaseController::class, 'recordPayment']);
     });
     
+    // Expense Management
+    Route::prefix('expenses')->group(function () {
+        Route::get('/', [App\Http\Controllers\Api\ExpenseController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\Api\ExpenseController::class, 'store']);
+        Route::get('/statistics', [App\Http\Controllers\Api\ExpenseController::class, 'statistics']);
+        Route::get('/types', [App\Http\Controllers\Api\ExpenseController::class, 'types']);
+        Route::get('/{id}', [App\Http\Controllers\Api\ExpenseController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\Api\ExpenseController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\Api\ExpenseController::class, 'destroy']);
+    });
+    
     // Sales & POS
     Route::prefix('sales')->group(function () {
         Route::get('/', [SalesController::class, 'index']);
