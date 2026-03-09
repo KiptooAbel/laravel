@@ -221,7 +221,8 @@ class ReportService
         return [
             'generated_at' => now()->toDateTimeString(),
             'summary' => [
-                'total_medicines' => count($items),
+                'total_medicines' => count($items), // Medicines with stock > 0
+                'total_medicines_all' => $medicines->count(), // All medicines (for reference)
                 'total_stock_quantity' => collect($items)->sum('stock_quantity'),
                 'total_value' => round($totalValuationCost, 2),
                 'total_valuation_at_cost' => round($totalValuationCost, 2),
@@ -268,7 +269,7 @@ class ReportService
             'summary' => [
                 'total_expired' => count($items),
                 'total_expired_batches' => count($items),
-                'total_expired_quantity' => collect($items)->sum('quantity'),
+                'total_expired_quantity' => (int) collect($items)->sum('quantity'),
                 'total_loss_amount' => round($totalLoss, 2),
             ],
             'items' => collect($items)->sortByDesc('loss_amount')->values(),
@@ -314,9 +315,9 @@ class ReportService
             'threshold_days' => $days,
             'summary' => [
                 'total_expiring' => count($items),
-                'total_expiring_batches' => count($items),
-                'total_expiring_quantity' => collect($items)->sum('quantity'),
-                'potential_loss_amount' => round(collect($items)->sum('potential_loss'), 2),
+                'total_batches_expiring_soon' => count($items), // Match Flutter model
+                'total_quantity' => (int) collect($items)->sum('quantity'),
+                'potential_loss' => round(collect($items)->sum('potential_loss'), 2),
             ],
             'items' => collect($items)->sortBy('days_until_expiry')->values(),
         ];
