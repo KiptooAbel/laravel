@@ -65,7 +65,7 @@ class ReportService
                 'total_cost' => round($totalCost, 2),
                 'gross_profit' => round($totalProfit, 2),
                 'total_expenses' => round($totalExpenses, 2),
-                'net_profit' => round($netProfiRevenue, 2),
+                'net_profit' => round($netProfit, 2),
                 'total_discount' => round($sales->sum('discount'), 2),
                 'total_tax' => round($sales->sum('vat_amount'), 2),
                 'net_amount' => round($sales->sum('total'), 2),

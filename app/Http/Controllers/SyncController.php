@@ -134,11 +134,23 @@ class SyncController extends Controller
 
         try {
             // Get medicines updated since last sync
-            $medicines = Medicine::with(['batches' => function($query) use ($lastSync) {
-                $query->where('updated_at', '>', $lastSync);
-            }])
-            ->where('updated_at', '>', $lastSync)
-            ->get();
+            // For initial sync (no last_sync or very old), get ALL active medicines
+            // Otherwise, only get those updated since last sync
+            $medicinesQuery = Medicine::with(['batches']);
+            
+            if ($request->has('last_sync') && Carbon::parse($request->last_sync)->gt(Carbon::now()->subMonths(6))) {
+                // Regular incremental sync - only updated medicines
+                $medicinesQuery->where('updated_at', '>', $lastSync);
+                // Also filter batches to only updated ones
+                $medicinesQuery->with(['batches' => function($query) use ($lastSync) {
+                    $query->where('updated_at', '>', $lastSync);
+                }]);
+            } else {
+                // Initial sync or very old last sync - get ALL active medicines with ALL batches
+                // This ensures offline mode has complete data
+            }
+            
+            $medicines = $medicinesQuery->where('is_active', true)->get();
 
             // Get users updated since last sync
             $users = User::where('updated_at', '>', $lastSync)
