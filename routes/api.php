@@ -123,6 +123,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [SalesController::class, 'store']);
         Route::get('/today-summary', [SalesController::class, 'todaySummary']);
         Route::get('/{sale}', [SalesController::class, 'show']);
+        Route::put('/{sale}', [SalesController::class, 'update']);
         Route::post('/{sale}/void', [SalesController::class, 'void'])->middleware('permission:manage_inventory');
         Route::get('/{sale}/receipt', [SalesController::class, 'receipt']);
     });

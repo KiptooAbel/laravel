@@ -123,6 +123,53 @@ class SalesController extends Controller
     }
 
     /**
+     * Update editable sale fields.
+     */
+    public function update(Request $request, Sale $sale): JsonResponse
+    {
+        $validated = $request->validate([
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:30',
+            'items' => 'sometimes|array|min:1',
+            'items.*.medicine_id' => 'required_with:items|exists:medicines,id',
+            'items.*.quantity' => 'required_with:items|integer|min:1',
+            'items.*.unit_price' => 'nullable|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
+            'payment_method' => 'nullable|in:cash,mpesa,card,mixed',
+            'amount_tendered' => 'nullable|numeric|min:0',
+            'change_given' => 'nullable|numeric|min:0',
+            'mpesa_transaction_id' => 'nullable|string|max:255',
+            'mpesa_phone' => 'nullable|string|max:20',
+            'mpesa_response' => 'nullable|array',
+            'card_last_four' => 'nullable|string|max:4',
+            'card_type' => 'nullable|string|max:50',
+            'card_transaction_id' => 'nullable|string|max:255',
+            'reference_number' => 'nullable|string|max:255',
+            'payments' => 'nullable|array',
+            'payments.*.method' => 'required_with:payments|in:cash,mpesa,card',
+            'payments.*.amount' => 'required_with:payments|numeric|min:0',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $sale = $this->salesService->updateSale($sale, $validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sale updated successfully.',
+                'data' => $sale,
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update sale.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Void a sale.
      */
     public function void(Request $request, Sale $sale): JsonResponse

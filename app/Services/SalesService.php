@@ -303,6 +303,79 @@ class SalesService
     }
 
     /**
+     * Update an existing sale, optionally rebuilding its line items and payments.
+     *
+     * @param Sale $sale
+     * @param array $data
+     * @return Sale
+     * @throws Exception
+     */
+    public function updateSale(Sale $sale, array $data): Sale
+    {
+        if ($sale->status === 'voided') {
+            throw new Exception('Voided sales cannot be edited.');
+        }
+
+        return DB::transaction(function () use ($sale, $data) {
+            $sale->loadMissing(['items.batch', 'payments']);
+
+            $hasItemChanges = isset($data['items']) && is_array($data['items']) && count($data['items']) > 0;
+
+            if (!$hasItemChanges) {
+                $sale->update([
+                    'customer_name' => $data['customer_name'] ?? $sale->customer_name,
+                    'customer_phone' => $data['customer_phone'] ?? $sale->customer_phone,
+                    'notes' => $data['notes'] ?? $sale->notes,
+                ]);
+
+                return $sale->fresh(['items.medicine', 'items.batch', 'payments', 'user', 'voidedByUser']);
+            }
+
+            $this->restoreSaleInventory($sale, 'Sale edited - restoring previous quantities');
+            $this->deleteSalePayments($sale);
+            $this->deleteSaleItems($sale);
+
+            $this->validateStockAvailability($data['items']);
+
+            $totals = $this->calculateTotals($data['items'], $data['discount'] ?? 0);
+
+            $paymentMethod = $data['payment_method'] ?? $sale->payment_method;
+            $amountTendered = $data['amount_tendered'] ?? $sale->amount_tendered ?? $totals['total'];
+
+            $sale->update([
+                'customer_name' => $data['customer_name'] ?? $sale->customer_name,
+                'customer_phone' => $data['customer_phone'] ?? $sale->customer_phone,
+                'subtotal' => $totals['subtotal'],
+                'discount' => $data['discount'] ?? 0,
+                'vat_amount' => $totals['vat_amount'],
+                'total' => $totals['total'],
+                'payment_method' => $paymentMethod,
+                'amount_tendered' => $amountTendered,
+                'change_given' => ($paymentMethod === 'cash' || $paymentMethod === 'mixed')
+                    ? max(0, (float) $amountTendered - (float) $totals['total'])
+                    : ($data['change_given'] ?? 0),
+                'mpesa_transaction_id' => $data['mpesa_transaction_id'] ?? null,
+                'notes' => $data['notes'] ?? $sale->notes,
+            ]);
+
+            foreach ($data['items'] as $item) {
+                $this->processSaleItem($sale, $item);
+            }
+
+            $this->createPaymentRecords($sale, [
+                ...$data,
+                'payment_method' => $paymentMethod,
+                'amount_tendered' => $amountTendered,
+                'change_given' => ($paymentMethod === 'cash' || $paymentMethod === 'mixed')
+                    ? max(0, (float) $amountTendered - (float) $totals['total'])
+                    : ($data['change_given'] ?? 0),
+            ]);
+
+            return $sale->fresh(['items.medicine', 'items.batch', 'payments', 'user', 'voidedByUser']);
+        });
+    }
+
+    /**
      * Generate receipt data for printing.
      *
      * @param Sale $sale
@@ -338,5 +411,41 @@ class SalesService
             'mpesa_transaction_id' => $sale->mpesa_transaction_id,
             'notes' => $sale->notes,
         ];
+    }
+
+    protected function restoreSaleInventory(Sale $sale, string $notePrefix): void
+    {
+        foreach ($sale->items as $item) {
+            $batch = $item->batch;
+
+            if (!$batch) {
+                continue;
+            }
+
+            $batch->increment('quantity', $item->quantity);
+            $batch->refresh();
+
+            StockMovement::create([
+                'medicine_id' => $item->medicine_id,
+                'batch_id' => $batch->id,
+                'type' => 'adjustment',
+                'quantity' => $item->quantity,
+                'balance_after' => $batch->quantity,
+                'reference_type' => 'App\Models\Sale',
+                'reference_id' => $sale->id,
+                'user_id' => $sale->user_id,
+                'notes' => "{$notePrefix}: {$sale->sale_number}",
+            ]);
+        }
+    }
+
+    protected function deleteSaleItems(Sale $sale): void
+    {
+        SaleItem::where('sale_id', $sale->id)->delete();
+    }
+
+    protected function deleteSalePayments(Sale $sale): void
+    {
+        Payment::where('sale_id', $sale->id)->delete();
     }
 }
