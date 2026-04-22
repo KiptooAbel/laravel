@@ -158,16 +158,13 @@ class SyncController extends Controller
                 ->get(['id', 'name', 'email', 'is_active', 'updated_at']);
 
             // Get suppliers - for initial sync (no last_sync or very old), get ALL active suppliers
-            // Otherwise, only get those updated since last sync
-            $suppliersQuery = \App\Models\Supplier::query();
+            // Otherwise, only get those updated since last sync  
+            $suppliersQuery = \App\Models\Supplier::where('is_active', true);
             if ($request->has('last_sync')) {
                 // Regular sync - only updated suppliers
                 $suppliersQuery->where('updated_at', '>', $lastSync);
-            } else {
-                // Initial sync - get all active suppliers
-                $suppliersQuery->where('is_active', true);
             }
-            $suppliers = $suppliersQuery->get(['id', 'name', 'contact_person', 'email', 'phone', 'address', 'is_active', 'updated_at']);
+            $suppliers = $suppliersQuery->get(['id', 'name', 'contact_person', 'email', 'phone', 'address', 'city', 'country', 'tax_id', 'notes', 'is_active', 'created_at', 'updated_at']);
 
             // Get recent stock movements (limit to last 1000)
             $stockMovements = \App\Models\StockMovement::where('created_at', '>', $lastSync)
