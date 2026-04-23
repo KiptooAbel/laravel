@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -20,6 +21,17 @@ class User extends Authenticatable
      * @var string
      */
     protected $guard_name = 'sanctum';
+=======
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, Notifiable;
+>>>>>>> 08ed6007b014c43be8e6804161c672aea09a4410
 
     /**
      * The attributes that are mass assignable.
@@ -30,7 +42,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+<<<<<<< HEAD
         'password_change_required',
+=======
+>>>>>>> 08ed6007b014c43be8e6804161c672aea09a4410
     ];
 
     /**

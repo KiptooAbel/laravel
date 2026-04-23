@@ -1,5 +1,10 @@
 <?php
 
+<<<<<<< HEAD
+=======
+use App\Models\User;
+
+>>>>>>> 08ed6007b014c43be8e6804161c672aea09a4410
 return [
 
     /*
@@ -40,10 +45,13 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+<<<<<<< HEAD
         'sanctum' => [
             'driver' => 'sanctum',
             'provider' => 'users',
         ],
+=======
+>>>>>>> 08ed6007b014c43be8e6804161c672aea09a4410
     ],
 
     /*
@@ -66,7 +74,11 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
+<<<<<<< HEAD
             'model' => env('AUTH_MODEL', App\Models\User::class),
+=======
+            'model' => env('AUTH_MODEL', User::class),
+>>>>>>> 08ed6007b014c43be8e6804161c672aea09a4410
         ],
 
         // 'users' => [

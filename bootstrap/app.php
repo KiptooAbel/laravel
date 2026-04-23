@@ -7,12 +7,16 @@ use Illuminate\Foundation\Configuration\Middleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+<<<<<<< HEAD
         api: __DIR__.'/../routes/api.php',
         apiPrefix: 'api',
+=======
+>>>>>>> 08ed6007b014c43be8e6804161c672aea09a4410
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+<<<<<<< HEAD
         // Don't use statefulApi for mobile apps - use pure token authentication
         // Ensure API routes don't get web middleware (CSRF, sessions, cookies)
         $middleware->api(prepend: [
@@ -44,4 +48,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 401);
             }
         });
+=======
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+>>>>>>> 08ed6007b014c43be8e6804161c672aea09a4410
     })->create();
